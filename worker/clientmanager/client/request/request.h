@@ -8,8 +8,6 @@
 #include <string>
 
 class Request {
-    std::string req;
-    state state;
 public:
     enum state{
         METHOD,
@@ -17,6 +15,10 @@ public:
         FINISHED,
         ERROR,
     };
+private:
+    std::string req;
+    state curr_state;
+public:
     struct ParsedRequest{
         enum Method{
             GET,

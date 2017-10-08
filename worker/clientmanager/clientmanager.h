@@ -6,7 +6,6 @@
 #define FST_CLIENTMANAGER_H
 
 #include <map>
-#include <client/client.h>
 #include "client/client.h"
 
 template <typename sock>
@@ -14,8 +13,8 @@ class ClientManager {
     std::map<sock,Client> clients_list;
 public:
     ClientManager();
-    int addClient(int);
-    Client getClient(int);
+    int addClient(sock);
+    Client getClient(sock);
 };
 
 

@@ -3,17 +3,16 @@
 //
 
 #include "clientmanager.h"
-#include <client/client.h>
-
-ClientManager::ClientManager() {
+template <typename socket >
+ClientManager<socket>::ClientManager() {
 }
 
 template <typename socket >
-int ClientManager::addClient(socket sc) {
+int ClientManager<socket>::addClient(socket sc) {
     clients_list[sc] = Client(sc);
 }
 
 template <typename socket >
-Client ClientManager::getClient(socket sc) {
+Client ClientManager<socket>::getClient(socket sc) {
     return clients_list[sc];
 }
