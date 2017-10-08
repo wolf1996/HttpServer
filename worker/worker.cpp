@@ -5,6 +5,7 @@
 #include "worker.h"
 #include "fstream"
 #include "sys/socket.h"
+#include "clientmanager/clientmanager.h"
 #include <unistd.h>
 #include <sys/epoll.h>
 #include <cstring>
@@ -42,6 +43,7 @@ void worker(int worker_id, int socket){
     epoll_event *event_list;
     logfile.open(std::to_string(worker_id));
     logfile << "worker starts" << std::endl;
+    ClientManager<decltype(socket)> clients;
     auto pollfd = epoll_create1(0);
     filter.data.fd = socket;
     filter.events = EPOLLIN | EPOLLET;
@@ -99,11 +101,13 @@ void worker(int worker_id, int socket){
                         stop = true;
                         break;
                     }
+                    clients.addClient(client_con);
                     logfile << "Add new connection \n"<<std::endl;
                 }while(!stop);
                 continue;
             }
             auto socket_to_close = false;
+            auto client = clients.getClient(current_socket);
             while(1){
                 auto rd = read(current_socket, buffer, BUFSIZE);
                 if(rd < 0) {
@@ -117,13 +121,16 @@ void worker(int worker_id, int socket){
                     socket_to_close = true;
                     break;
                 }
-                logfile << std::string(buffer, buffer+rd) << std::endl;
-                if((buffer[rd-2]=='\r') && (buffer[rd-1]=='\n')){
+                //logfile << std::string(buffer, buffer+rd) << std::endl;
+                auto res = client.handle(std::string(buffer, buffer+rd));
+                if(res == Client::FINISHED){
+                    logfile << client.getFullReq() << std::endl;
                     socket_to_close = true;
                 }
             }
             if(socket_to_close) {
                 logfile << "close socket" << std::endl;
+                clients.removeClient(current_socket);
                 close(current_socket);
             }
         }

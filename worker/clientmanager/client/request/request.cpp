@@ -8,7 +8,7 @@ Request::Request(): curr_state(METHOD){}
 Request::state Request::process(std::string additional_data) {
     req += additional_data;
     auto len = additional_data.size();
-    curr_state = (additional_data[len-1] == '\n' && additional_data[len-1] == '\n')? METHOD: FINISHED;
+    curr_state = (additional_data[len-2] == '\r' && additional_data[len-1] == '\n')? FINISHED: METHOD;
     return  curr_state;
 }
 
