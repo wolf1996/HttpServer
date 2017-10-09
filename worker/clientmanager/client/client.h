@@ -11,10 +11,12 @@
 class Client {
     int socket;
     Request req;
+    std::string readData();
 public:
     enum out_state{
         OK,
         ERROR,
+        RESPONCE_PROCESSING,
         FINISHED,
     };
     Client(int _socket);

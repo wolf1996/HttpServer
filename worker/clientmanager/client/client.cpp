@@ -19,6 +19,10 @@ Client::out_state Client::handle(std::string data) {
     return OK;
 }
 
+std::string Client::readData() {
+
+}
+
 std::string Client::getFullReq() {
     return req.getStringReq();
 }

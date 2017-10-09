@@ -61,8 +61,8 @@ int main() {
                                         sizeof(cpu_set_t), &cpu_set);
         if (rc != 0) {
             std::cerr << "Error calling pthread_setaffinity_np: " << rc << "\n";
-        }
-        ;
+        };
+
     }
     for(auto &i : tpull){
         i.join();

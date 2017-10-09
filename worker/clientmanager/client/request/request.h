@@ -9,8 +9,19 @@
 
 class Request {
 public:
+    struct ParsedRequest{
+        enum Method{
+            GET,
+            HEAD,
+        };
+        Method  method;
+        std::string path;
+    };
     enum state{
+        EMPTY,
         METHOD,
+        PATH,
+        HTTP,
         HEADERS,
         FINISHED,
         ERROR,
@@ -18,16 +29,19 @@ public:
 private:
     std::string req;
     state curr_state;
+    ParsedRequest res;
+    int emptyState(int);
+    int methodState(int);
+    int pathState(int);
+    int headersState(int);
+    int httpState(int);
+    int proc(int);
+    int index;
 public:
-    struct ParsedRequest{
-        enum Method{
-            GET,
-            HEAD,
-        };
-    };
     Request();
     state process(std::string);
     std::string getStringReq();
+    std::string stringState();
 };
 
 
