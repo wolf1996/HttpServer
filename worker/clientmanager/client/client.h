@@ -7,20 +7,35 @@
 
 #include <string>
 #include "request/request.h"
+#include <asm/ioctls.h>
+#include <sys/ioctl.h>
+#include "sys/socket.h"
+#include <unistd.h>
+#include <sys/epoll.h>
+#include <cstring>
+#include <fcntl.h>
 
 class Client {
-    int socket;
-    Request req;
-    std::string readData();
 public:
-    enum out_state{
+    enum state{
         OK,
         ERROR,
+        REQUEST_PARSING,
         RESPONCE_PROCESSING,
         FINISHED,
     };
-    Client(int _socket);
-    out_state handle(std::string);
+private:
+    int socket;
+    Request req;
+    state current_state;
+    std::tuple<std::string, int>readData();
+    state readHandler();
+    state writeHandler();
+    char* buffer;
+    int buffersize;
+public:
+    Client(int _socket, char _buffer[], int _buffersize);
+    state handle(uint32_t event);
     std::string getFullReq();
 };
 

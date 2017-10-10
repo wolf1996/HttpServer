@@ -9,8 +9,6 @@
 #include <unistd.h>
 #include <sys/epoll.h>
 #include <cstring>
-#include <asm/ioctls.h>
-#include <sys/ioctl.h>
 #include <fcntl.h>
 
 #define BUFSIZE 1024
@@ -108,25 +106,10 @@ void worker(int worker_id, int socket){
             }
             auto socket_to_close = false;
             auto client = clients.getClient(current_socket);
-            while(1){
-                auto rd = read(current_socket, buffer, BUFSIZE);
-                if(rd < 0) {
-                    if (errno != EAGAIN)
-                    {
-                        socket_to_close = true;
-                    }
-                    break;
-                }
-                if (rd == 0){
-                    socket_to_close = true;
-                    break;
-                }
-                //logfile << std::string(buffer, buffer+rd) << std::endl;
-                auto res = client.handle(std::string(buffer, buffer+rd));
-                if(res == Client::FINISHED){
-                    logfile << client.getFullReq() << std::endl;
-                    socket_to_close = true;
-                }
+            auto res = client.handle(event_list[i].events);
+            if(res == Client::FINISHED){
+                logfile << client.getFullReq() << std::endl;
+                socket_to_close = true;
             }
             if(socket_to_close) {
                 logfile << "close socket" << std::endl;

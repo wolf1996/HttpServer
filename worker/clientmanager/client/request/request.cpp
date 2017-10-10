@@ -19,7 +19,6 @@ Request::state Request::process(std::string additional_data) {
         index = proc(index);
 
     }
-
     return  curr_state;
 }
 
