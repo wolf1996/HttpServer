@@ -33,6 +33,11 @@ int Request::emptyState(int id){
         res.method = ParsedRequest::HEAD;
         return 0;
     }
+    if (req[id] == 'P') {
+        curr_state = HEADERS;
+        res.method = ParsedRequest::POST;
+        return 0;
+    }
     curr_state = ERROR;
     return 0;
 }
@@ -44,10 +49,26 @@ int Request::methodState(int id){
     curr_state = PATH;
     return id + 1;
 }
+std::string urlDecode(std::string eString) {
+    std::string ret;
+    char ch;
+    int i, j;
+    for (i=0; i<eString.length(); i++) {
+        if (int(eString[i])==37) {
+            sscanf(eString.substr(i+1,2).c_str(), "%x", &j);
+            ch=static_cast<char>(j);
+            ret+=ch;
+            i=i+2;
+        } else {
+            ret+=eString[i];
+        }
+    }
+    return (ret);
+}
 int Request::pathState(int id){
     auto bg = id;
-    for(;(id < req.size())&&(req[id] != ' '); id++){}
-    res.path = std::string(req.begin() + bg, req.begin() + id);
+    for(;(id < req.size())&&(req[id] != ' ')&&(req[id] != '?'); id++){}
+    res.path = urlDecode(std::string(req.begin() + bg, req.begin() + id));
     if (id == req.size()){
         return id;
     }
@@ -87,6 +108,7 @@ int Request::proc(int id) {
         case HTTP:
             return httpState(id);
     }
+    return curr_state;
 }
 
 std::string Request::stringState(){
@@ -102,8 +124,13 @@ std::string Request::stringState(){
         case HTTP:
             return std::string("http");
     }
+    return "1";
 }
 
 std::string Request::getStringReq() {
     return req;
+}
+
+Request::ParsedRequest Request::getParsedReq(){
+    return res;
 }

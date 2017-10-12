@@ -13,6 +13,7 @@ public:
         enum Method{
             GET,
             HEAD,
+            POST,
         };
         Method  method;
         std::string path;
@@ -42,6 +43,7 @@ public:
     state process(std::string);
     std::string getStringReq();
     std::string stringState();
+    ParsedRequest getParsedReq();
 };
 
 

@@ -34,17 +34,17 @@ int set_nonblocking(int socket){
     return 0;
 }
 
-void worker(int worker_id, int socket){
+void worker(int worker_id, int socket, const std::experimental::filesystem::path& working_directory){
     int current_sockets = 1;
     std::ofstream logfile;
     epoll_event filter;
     epoll_event *event_list;
     logfile.open(std::to_string(worker_id));
     logfile << "worker starts" << std::endl;
-    ClientManager<decltype(socket)> clients;
+    ClientManager<decltype(socket)> clients(working_directory);
     auto pollfd = epoll_create1(0);
     filter.data.fd = socket;
-    filter.events = EPOLLIN | EPOLLET;
+    filter.events = EPOLLIN | EPOLLOUT | EPOLLET;
     auto err = epoll_ctl(pollfd,EPOLL_CTL_ADD,socket, &filter);
     if (err < 0) {
         logfile << "error on epoll comand" << std::endl;
@@ -62,7 +62,7 @@ void worker(int worker_id, int socket){
         for(int i = 0; i < eventsnum; i++){
             if ((event_list[i].events & EPOLLERR) ||
                 (event_list[i].events & EPOLLHUP) ||
-                (!(event_list[i].events & EPOLLIN)))
+                (!(event_list[i].events & (EPOLLIN|EPOLLOUT))))
             {
                 logfile << "epoll error \n"<<std::endl;
                 close (event_list[i].data.fd);
@@ -91,7 +91,7 @@ void worker(int worker_id, int socket){
                         break;
                     }
                     filter.data.fd = client_con;
-                    filter.events = EPOLLIN | EPOLLET;
+                    filter.events = EPOLLIN | EPOLLOUT;
                     err = epoll_ctl (pollfd, EPOLL_CTL_ADD, client_con, &filter);
                     if (err == -1)
                     {
@@ -106,14 +106,20 @@ void worker(int worker_id, int socket){
             }
             auto socket_to_close = false;
             auto client = clients.getClient(current_socket);
-            auto res = client.handle(event_list[i].events);
-            if(res == Client::FINISHED){
-                logfile << client.getFullReq() << std::endl;
+            auto res = client->handle(event_list[i].events);
+            if((res == Client::FINISHED)||(res == Client::ERROR)){
+                logfile << client->getFullReq() << std::endl;
                 socket_to_close = true;
             }
             if(socket_to_close) {
                 logfile << "close socket" << std::endl;
                 clients.removeClient(current_socket);
+                err = epoll_ctl(pollfd, EPOLL_CTL_DEL, current_socket, &filter);
+                if (err == -1)
+                {
+                    stop_this_nonsense = true;
+                    break;
+                }
                 close(current_socket);
             }
         }

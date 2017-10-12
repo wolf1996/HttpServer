@@ -11,31 +11,37 @@
 
 template <typename sock>
 class ClientManager {
-    std::map<sock,Client> clients_list;
+    std::map<sock,Client*> clients_list;
     char buf[BUFSIZE];
+    const std::experimental::filesystem::path& working_directory;
 public:
-    ClientManager();
+    ClientManager(const std::experimental::filesystem::path& _working_directory);
     int addClient(sock);
-    Client getClient(sock);
+    Client* getClient(sock);
     int removeClient(sock);
 };
 
 template <typename socket >
-ClientManager<socket>::ClientManager() {
+ClientManager<socket>::ClientManager(const std::experimental::filesystem::path& _working_directory):
+working_directory(_working_directory){
 }
 
 template <typename socket >
 int ClientManager<socket>::addClient(socket sc) {
-    clients_list.insert(std::pair<socket, Client>(sc, Client(sc,buf, BUFSIZE)));
+    clients_list.insert(std::pair<socket, Client*>(sc, new Client(sc, buf, BUFSIZE, working_directory)));
+    return 0;
 }
 
 template <typename socket >
 int ClientManager<socket>::removeClient(socket sc) {
+    delete clients_list.find(sc)->second;
     clients_list.erase(sc);
+    return 0;
+
 }
 
 template <typename socket >
-Client ClientManager<socket>::getClient(socket sc) {
+Client* ClientManager<socket>::getClient(socket sc) {
     return clients_list.find(sc)->second;
 }
 

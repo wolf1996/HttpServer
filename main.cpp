@@ -1,4 +1,6 @@
 #include <iostream>
+#include <experimental/filesystem>
+
 #include "worker/worker.h"
 #include <thread>
 #include <netinet/in.h>
@@ -12,6 +14,7 @@
 
 
 int main() {
+    std::experimental::filesystem::path working_directory("/home/ksg/disk_d/Mail/HightLoad/http-test-suite/");
     int sock_descriptor;
     struct sockaddr_in addr;
     sock_descriptor = socket(AF_INET, SOCK_STREAM, 0);
@@ -53,7 +56,7 @@ int main() {
     auto tpull = std::vector<std::thread>(cores);
     for (auto i = 0; i < cores; i++){
         std::cout<<i<<"_worker starts"<<std::endl;
-        tpull[i] = std::thread(worker, i, sock_descriptor);
+        tpull[i] = std::thread(worker, i, sock_descriptor, working_directory);
         cpu_set_t cpu_set;
         CPU_ZERO(&cpu_set);
         CPU_SET(i, &cpu_set);
