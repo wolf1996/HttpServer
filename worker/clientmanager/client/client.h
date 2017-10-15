@@ -34,7 +34,6 @@ private:
     std::tuple<std::string, int>readData();
     state readHandler();
     state writeHandler();
-    void  closeSocket();
     char* buffer;
     int buffersize;
     const std::experimental::filesystem::path& working_directory;

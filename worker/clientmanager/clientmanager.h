@@ -7,6 +7,7 @@
 
 #include <map>
 #include "client/client.h"
+#include "Pool/ObjectPool.h"
 #define BUFSIZE 1024
 
 template <typename sock>

@@ -14,16 +14,13 @@ void ResponceFiles::setfile(int _file, ssize_t _filesize) {
 }
 
 ResponceFiles::state ResponceFiles::process(){
-    std::cerr<<"SENT prev "<<position<<std::endl;
     auto done  = sendfile(socket, file, &position, BLOCKSIZE);
     if (done <= 0){
         if(errno != EAGAIN) {
             current_state = ERROR;
-            std::cerr << "ERROR SENT " << position << std::endl;
             return current_state;
         }
     }
-    std::cerr<<"SENT "<<position<<" "<<size <<std::endl;
     if(position >= size){
         current_state = FINISH;
     }

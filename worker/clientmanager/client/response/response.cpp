@@ -23,13 +23,15 @@ Response::state Response::process(){
             current_state = prepareHandler();
         case HEADERS:
             current_state = headersHandler();
-            break;
         case FILE:
-            current_state = fileHandler();
-            break;
+            if (current_state == FILE) {
+                current_state = fileHandler();
+            }
         case CLOSE:
-            current_state = closeHandler();
-            break;
+            if (current_state == CLOSE) {
+                current_state = closeHandler();
+            }
+
     }
     return current_state;
 }
@@ -59,23 +61,19 @@ Response::state Response::closeHandler() {
 }
 
 Response::state Response::headersHandler() {
-    std::cerr << stringmessage << std::endl;
     auto datasize = stringmessage.length();
     current_header_position += send(socket, stringmessage.c_str()+current_header_position,(datasize-current_header_position),0);
     if (current_header_position >= datasize) {
         current_header_position = 0;
         if(req.method == Request::ParsedRequest::HEAD){
-            std::cerr << "finish state after headers "<< std::endl;
             return CLOSE;
         }
-        std::cerr << "file state after headers "<< socket << std::endl;
         return FILE;
     }
     return HEADERS;
 }
 
 Response::state Response::fileHandler() {
-    std::cerr <<"file write start" << std::endl;
     auto status = resp_file.process();
     if (status == ResponceFiles::IN_PROGRES){
         return FILE;
@@ -93,7 +91,6 @@ Response::state Response::preparePostHandler(){
 }
 Response::state Response::prepareHeaderHandler(){
     path = working_directory / std::experimental::filesystem::path(req.path);
-    std::cerr << path.string() << std::endl;
     if (std::experimental::filesystem::is_directory(path)) {
         path.append("index.html");
     }
@@ -109,7 +106,6 @@ Response::state Response::prepareHeaderHandler(){
 Response::state Response::prepareGetHandler(){
     std::error_code cd;
     path = std::experimental::filesystem::canonical( working_directory / std::experimental::filesystem::path(req.path),cd);
-    std::cerr << path.string() << std::endl;
     if(path.string().compare(0, working_directory.string().size(), working_directory.string())){
         headers.code = ResponseHeaders::NOTFOUND_404;
         return HEADERS;

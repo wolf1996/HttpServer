@@ -12,8 +12,8 @@
 #include <fcntl.h>
 
 #define BUFSIZE 1024
-#define EVENTLIST_SIZE 256
-#define TIMEOUT 3000
+#define EVENTLIST_SIZE 1024
+#define TIMEOUT -1
 
 int set_nonblocking(int socket){
     int flags, s;
@@ -100,7 +100,7 @@ void worker(int worker_id, int socket, const std::experimental::filesystem::path
                         break;
                     }
                     clients.addClient(client_con);
-                    logfile << "Add new connection \n"<<std::endl;
+                    //logfile << "Add new connection \n"<<std::endl;
                 }while(!stop);
                 continue;
             }
@@ -108,11 +108,11 @@ void worker(int worker_id, int socket, const std::experimental::filesystem::path
             auto client = clients.getClient(current_socket);
             auto res = client->handle(event_list[i].events);
             if((res == Client::FINISHED)||(res == Client::ERROR)){
-                logfile << client->getFullReq() << std::endl;
+                //logfile << client->getFullReq() << std::endl;
                 socket_to_close = true;
             }
             if(socket_to_close) {
-                logfile << "close socket" << std::endl;
+                //logfile << "close socket" << std::endl;
                 clients.removeClient(current_socket);
                 err = epoll_ctl(pollfd, EPOLL_CTL_DEL, current_socket, &filter);
                 if (err == -1)
@@ -125,6 +125,6 @@ void worker(int worker_id, int socket, const std::experimental::filesystem::path
         }
 
     } while(!stop_this_nonsense);
-    logfile << "worker stops";
+    //logfile << "worker stops";
     logfile.close();
 }

@@ -5,18 +5,78 @@
 #include <thread>
 #include <netinet/in.h>
 #include <cstring>
+#include <fstream>
 #include <vector>
 #include <asm/ioctls.h>
 #include <sys/ioctl.h>
 #include "sys/socket.h"
 #include "sys/types.h"
 #include "unistd.h"
+#include <regex>
+#include <string>
 
+// #define CONFIGFILEPATH "/home/ksg/disk_d/Mail/HightLoad/fst/httpd.conf"
+#define CONFIGFILEPATH "/etc/httpd.conf"
+
+
+struct server_config{
+    int port;
+    std::experimental::filesystem::path working_dir;
+    int thread_limit;
+    int cpu_limit;
+    server_config():port(80),working_dir("."),thread_limit(50),cpu_limit(std::thread::hardware_concurrency()) {};
+};
+
+int parse_config(server_config& conf, std::string filename){
+    std::string line;
+    std::ifstream file;
+    file.open(filename.c_str());
+    std::smatch matches;
+    if (file.fail()){
+        std::cerr << "can't open config file " << std::endl;
+        return 1;
+    }
+    std::regex conflineparse("^([A-Za-z0-9_]+)( *)([A-Za-z0-9_/-]+)( *)(.*)$", std::regex_constants::ECMAScript);
+    while (std::getline(file,line)){
+        if(std::regex_search(line, matches, conflineparse)) {
+            auto key = matches[1].str();
+            auto val = matches[3].str();
+            std::cerr <<"KEY "<< key <<"\t VALUE "<<val << std::endl;
+            if (!key.compare("listen")){
+                conf.port = std::stoi(val, nullptr);
+                continue;
+            }
+            if (!key.compare("cpu_limit")){
+                conf.cpu_limit = std::stoi(val, nullptr);
+                continue;
+            }
+            if (!key.compare("thread_limit")){
+                conf.thread_limit = std::stoi(val, nullptr);
+                continue;
+            }
+            if (!key.compare("document_root")){
+                conf.working_dir = std::experimental::filesystem::path(val);
+                continue;
+            }
+            std::cerr <<"ERROR"<< std::endl;
+        } else {
+            if(line.length() > 0) {
+                std::cout << "conf parsing error" << line << std::endl;
+            }
+        }
+    }
+    return 0;
+}
 
 int main() {
-    std::experimental::filesystem::path working_directory("/home/ksg/disk_d/Mail/HightLoad/http-test-suite/");
     int sock_descriptor;
     struct sockaddr_in addr;
+    server_config conf;
+    if (parse_config(conf, CONFIGFILEPATH)){
+        return 0;
+    }
+    std::experimental::filesystem::path working_directory = std::experimental::filesystem::canonical(conf.working_dir);
+    std::cerr << working_directory << std::endl;
     sock_descriptor = socket(AF_INET, SOCK_STREAM, 0);
     if (sock_descriptor < 0) {
         std::cerr << "can't create socket" << std::endl;
@@ -40,7 +100,7 @@ int main() {
     std::memset(& addr, 0,sizeof(addr) );
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = INADDR_ANY;
-    addr.sin_port = htons(80);
+    addr.sin_port = htons(conf.port);
     err = bind(sock_descriptor, (struct sockaddr *)&addr, sizeof(addr));
     if (err < 0) {
         std::cerr << "can't bind addres " << err << std::endl;
@@ -51,8 +111,8 @@ int main() {
         std::cerr << "can't set nonblocking mod " << err << std::endl;
         return 0;
     }
-    listen(sock_descriptor, 50);
-    unsigned cores = std::thread::hardware_concurrency();
+    listen(sock_descriptor, conf.thread_limit);
+    unsigned cores = conf.cpu_limit;
     auto tpull = std::vector<std::thread>(cores);
     for (auto i = 0; i < cores; i++){
         std::cout<<i<<"_worker starts"<<std::endl;

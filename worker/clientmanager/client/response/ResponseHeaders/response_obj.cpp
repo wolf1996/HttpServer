@@ -18,17 +18,17 @@ std::string ResponseHeaders::getStringStatus(){
 }
 std::string ResponseHeaders::getContentType(){
     static std::map<std::string, std::string> table{
-            {".PNG","Content-Type: image/png; charset=binary\r\n"},
-            {".png","Content-Type: image/png; charset=binary\r\n"},
-            {".swf","Content-Type: application/x-shockwave-flash; charset=binary\r\n"},
-            {".JPG","Content-Type: image/jpeg; charset=binary\r\n"},
-            {".gif","Content-Type: image/gif; charset=binary\r\n"},
-            {".css","Content-Type: text/plain; charset=us-ascii\r\n"},
-            {".js","Content-Type: text/html; charset=us-ascii\r\n"},
-            {".jpg","Content-Type: image/jpeg; charset=binary\r\n"},
-            {".txt","Content-Type: text/plain; charset=us-ascii\r\n"},
-            {".html","Content-Type: text/html; charset=us-ascii\r\n"},
-            {".jpeg","Content-Type: image/jpeg; charset=binary\r\n"},
+            {".PNG","Content-Type: image/png\r\n"},
+            {".png","Content-Type: image/png\r\n"},
+            {".swf","Content-Type: application/x-shockwave-flash\r\n"},
+            {".JPG","Content-Type: image/jpeg\r\n"},
+            {".gif","Content-Type: image/gif\r\n"},
+            {".css","Content-Type: text/css\r\n"},
+            {".js","Content-Type: text/javascript\r\n"},
+            {".jpg","Content-Type: image/jpeg\r\n"},
+            {".txt","Content-Type: text/plain\r\n"},
+            {".html","Content-Type: text/html\r\n"},
+            {".jpeg","Content-Type: image/jpeg\r\n"},
     };
     return table[content_type];
 }
