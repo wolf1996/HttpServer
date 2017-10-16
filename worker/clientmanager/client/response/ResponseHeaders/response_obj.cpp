@@ -4,21 +4,30 @@
 
 #include "response_obj.h"
 #include <map>
+#include <ctime>
+#include <iomanip>
 
-std::string ResponseHeaders::getStringStatus(){
+
+void ResponseHeaders::getStringStatus(std::string & rpr){
     switch (code){
         case OK_200:
-            return "HTTP/1.1 200 OK\r\n";
+            rpr.append("HTTP/1.1 200 OK\r\n");
+            break;
         case NOTFOUND_404:
-            return "HTTP/1.1 404 Not Found\r\n";
+            rpr.append("HTTP/1.1 404 Not Found\r\n");
+            break;
         case NOTIMPLEMENTED_405:
-            return "HTTP/1.1 405 Not Implemented\r\n";
+            rpr.append("HTTP/1.1 405 Not Implemented\r\n");
+            break;
         case FORBIDDEN_403:
-            return "HTTP/1.1 403 FORBIDDEN\r\n";
+            rpr.append("HTTP/1.1 403 FORBIDDEN\r\n");
+            break;
+        default:
+            rpr.append("DICH \r\n");
     }
-    return std::string("DICH \r\n");
 }
-std::string ResponseHeaders::getContentType(){
+
+void ResponseHeaders::getContentType(std::string & rpr){
     static std::map<std::string, std::string> table{
             {".PNG","Content-Type: image/png\r\n"},
             {".png","Content-Type: image/png\r\n"},
@@ -32,23 +41,29 @@ std::string ResponseHeaders::getContentType(){
             {".html","Content-Type: text/html\r\n"},
             {".jpeg","Content-Type: image/jpeg\r\n"},
     };
-    return table[content_type];
+    rpr.append( table[content_type]);
 }
 
-std::string ResponseHeaders::getContentLength(){
-    std::ostringstream oss;
-    oss << "Content-Length: " << filesize << "\r\n";
-    return oss.str();
+void ResponseHeaders::getContentLength(std::string & rpr){
+    rpr.append("Content-Length: " );
+    rpr.append(std::to_string(filesize));
+    rpr.append("\r\n");
 }
-std::string ResponseHeaders::getStaticHeaders(){
-    return "Server: HAL9k\r\nDate Mon, 27 Jul 2009 12:28:53 GMT\r\nConnection: Closed\r\n\r\n";
+void ResponseHeaders::getStaticHeaders(std::string & rpr){
+    char buf[1000];
+    auto t = std::time(nullptr);
+    auto tm = *std::localtime(&t);
+    rpr.append("Server: HAL9k\r\nDate:");
+    strftime(buf, sizeof buf, "%a, %d %b %Y %H:%M:%S %Z", &tm);
+    rpr.append(buf);
+    rpr.append("\r\nConnection: Closed\r\n\r\n");
 }
-std::string ResponseHeaders::getStringRepr(){
-    std::string res = getStringStatus();
+
+void ResponseHeaders::getStringRepr(std::string& str){
+    getStringStatus(str);
     if (code == OK_200){
-        res += getContentType();
-        res += getContentLength();
+        getContentType(str);
+        getContentLength(str);
     }
-    res += getStaticHeaders();
-    return res;
+    getStaticHeaders(str);
 }

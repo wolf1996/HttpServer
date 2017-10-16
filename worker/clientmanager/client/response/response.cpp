@@ -8,6 +8,7 @@
 
 Response::Response( int _socket,const std::experimental::filesystem::path& _working_directory): socket(_socket),
 current_state(PREPARE), working_directory(_working_directory), current_header_position(0), resp_file(socket){
+    str_resp.reserve(1024);
 }
 
 void  Response::setRequest(const Request::ParsedRequest &_req) {
@@ -52,7 +53,8 @@ Response::state Response::prepareHandler() {
             prepareGetHandler();
             break;
     }
-    stringmessage = headers.getStringRepr();
+    headers.getStringRepr(stringmessage);
+    //std::cerr << stringmessage;
     return HEADERS;
 }
 
@@ -91,11 +93,14 @@ Response::state Response::preparePostHandler(){
 }
 Response::state Response::prepareHeaderHandler(){
     path = working_directory / std::experimental::filesystem::path(req.path);
+    bool indexing;
     if (std::experimental::filesystem::is_directory(path)) {
         path.append("index.html");
+        indexing = true;
     }
+
     if (!std::experimental::filesystem::exists(path)) {
-        headers.code = ResponseHeaders::NOTFOUND_404;
+        headers.code = (!indexing)?ResponseHeaders::NOTFOUND_404:ResponseHeaders::FORBIDDEN_403;
     } else {
         headers.code = ResponseHeaders::OK_200;
         headers.content_type = path.extension();
@@ -103,6 +108,7 @@ Response::state Response::prepareHeaderHandler(){
     }
     return HEADERS;
 }
+
 Response::state Response::prepareGetHandler(){
     std::error_code cd;
     path = std::experimental::filesystem::canonical( working_directory / std::experimental::filesystem::path(req.path),cd);

@@ -8,7 +8,7 @@
 #include <experimental/filesystem>
 #include <sys/sendfile.h>
 
-#define BLOCKSIZE 5120000
+#define BLOCKSIZE 5120
 
 class ResponceFiles {
 public:

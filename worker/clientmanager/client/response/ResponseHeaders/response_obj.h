@@ -19,12 +19,11 @@ struct ResponseHeaders {
     std::string content_type;
     code code;
     uint64_t filesize;
-    static const std::string static_header;
-    std::string getStringStatus();
-    std::string getContentType();
-    std::string getStaticHeaders();
-    std::string getStringRepr();
-    std::string getContentLength();
+    void getStringStatus(std::string &);
+    void getContentType(std::string &);
+    void getStaticHeaders(std::string &);
+    void getStringRepr(std::string &);
+    void getContentLength(std::string &);
 };
 
 

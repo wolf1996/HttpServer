@@ -12,7 +12,7 @@ Request::Request(): curr_state(EMPTY), index(0){}
  */
 
 // здесь будет супер заглушка!
-Request::state Request::process(std::string additional_data) {
+Request::state Request::process(std::string& additional_data) {
     req += additional_data;
 
     for(; (index < req.size())&&((curr_state != FINISHED)||(curr_state != ERROR)); ){

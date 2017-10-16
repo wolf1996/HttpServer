@@ -101,6 +101,7 @@ int main() {
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = INADDR_ANY;
     addr.sin_port = htons(conf.port);
+    auto num_cpu = std::thread::hardware_concurrency();
     err = bind(sock_descriptor, (struct sockaddr *)&addr, sizeof(addr));
     if (err < 0) {
         std::cerr << "can't bind addres " << err << std::endl;
@@ -119,7 +120,7 @@ int main() {
         tpull[i] = std::thread(worker, i, sock_descriptor, working_directory);
         cpu_set_t cpu_set;
         CPU_ZERO(&cpu_set);
-        CPU_SET(i, &cpu_set);
+        CPU_SET(i%num_cpu, &cpu_set);
         int rc = pthread_setaffinity_np(tpull[i].native_handle(),
                                         sizeof(cpu_set_t), &cpu_set);
         if (rc != 0) {

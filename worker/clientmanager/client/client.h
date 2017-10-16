@@ -31,13 +31,15 @@ private:
     Request req;
     Response resp;
     state current_state;
-    std::tuple<std::string, int>readData();
+    int readData();
     state readHandler();
     state writeHandler();
     char* buffer;
     int buffersize;
     const std::experimental::filesystem::path& working_directory;
     int eventsNum;
+    std::string resp_string;
+    std::string req_string;
 public:
     Client(int _socket, char _buffer[], int _buffersize, const std::experimental::filesystem::path& _working_directory);
     state handle(uint32_t event);

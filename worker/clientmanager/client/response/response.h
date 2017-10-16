@@ -24,6 +24,7 @@ public:
 private:
     Request::ParsedRequest req;
     int socket;
+    std::string str_resp;
     std::FILE* filedescr;
     uint64_t current_header_position;
     ResponceFiles resp_file;

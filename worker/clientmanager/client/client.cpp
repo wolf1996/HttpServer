@@ -9,7 +9,10 @@
 
 Client::Client(int _socket, char _buffer[], int _buffersize, const std::experimental::filesystem::path& _working_directory):
         socket(_socket), buffer(_buffer),buffersize(_buffersize),current_state(REQUEST_PARSING),
-        working_directory(_working_directory), resp(_socket, _working_directory),eventsNum(0){}
+        working_directory(_working_directory), resp(_socket, _working_directory),eventsNum(0){
+    resp_string.reserve(1024);
+    req_string.reserve(1024);
+}
 
 Client::state Client::handle(uint32_t event) {
     eventsNum++;
@@ -31,21 +34,22 @@ Client::state Client::handle(uint32_t event) {
 }
 
 
-std::tuple<std::string, int> Client::readData() {
-    ssize_t rd;
-    std::string res;
+int Client::readData() {
+    ssize_t app = 0;
+    int seria = 0;
     while(1){
-        rd = read(socket, buffer, buffersize);
-        if(rd <= 0) {
+        app = read(socket, buffer, buffersize);
+        if(app <= 0) {
             if (errno != EAGAIN)
             {
-                return std::make_tuple(std::string(""),1);
+                return -1;
             }
             break;
         }
-        res += std::string(buffer, buffer+rd);
+        req_string.append(buffer,buffer+app);
+        seria += app;
     }
-    return std::make_tuple(res,0);
+    return seria;
 }
 
 std::string Client::getFullReq() {
@@ -53,17 +57,16 @@ std::string Client::getFullReq() {
 }
 
 Client::state Client::readHandler(){
-    std::string data;
-    int error;
-    std::tie(data, error) = readData();
+    int num;
+    num = readData();
     //std::cerr <<"GOT"<< data << std::endl;
-    if (error != 0) {
+    if (num < 0) {
         return ERROR;
     }
-    if (data.size() == 0){
+    if (num == 0){
         return RESPONCE_PROCESSING;
     }
-    auto st = req.process(data);
+    auto st = req.process(req_string);
     if (st == Request::FINISHED){
         resp.setRequest(req.getParsedReq());
         return RESPONCE_PROCESSING;

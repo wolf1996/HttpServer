@@ -40,7 +40,7 @@ private:
     int index;
 public:
     Request();
-    state process(std::string);
+    state process(std::string&);
     std::string getStringReq();
     std::string stringState();
     ParsedRequest getParsedReq();
