@@ -37,10 +37,17 @@ private:
     char* buffer;
     int buffersize;
     const std::experimental::filesystem::path& working_directory;
+    int eventsNum;
 public:
     Client(int _socket, char _buffer[], int _buffersize, const std::experimental::filesystem::path& _working_directory);
     state handle(uint32_t event);
     std::string getFullReq();
+    int getEventsNum(){
+        return  eventsNum;
+    };
+    state getCurrState(){
+        return current_state ;
+    }
 };
 
 

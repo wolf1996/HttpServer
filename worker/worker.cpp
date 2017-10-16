@@ -91,7 +91,7 @@ void worker(int worker_id, int socket, const std::experimental::filesystem::path
                         break;
                     }
                     filter.data.fd = client_con;
-                    filter.events = EPOLLIN | EPOLLOUT;
+                    filter.events = EPOLLIN | EPOLLET;
                     err = epoll_ctl (pollfd, EPOLL_CTL_ADD, client_con, &filter);
                     if (err == -1)
                     {
@@ -106,10 +106,21 @@ void worker(int worker_id, int socket, const std::experimental::filesystem::path
             }
             auto socket_to_close = false;
             auto client = clients.getClient(current_socket);
+            auto cs = client->getCurrState();
             auto res = client->handle(event_list[i].events);
             if((res == Client::FINISHED)||(res == Client::ERROR)){
                 //logfile << client->getFullReq() << std::endl;
                 socket_to_close = true;
+            }
+            if((!socket_to_close)&&((cs != res )&&(res == Client::RESPONCE_PROCESSING))){
+                filter.data.fd = current_socket;
+                filter.events = EPOLLOUT;
+                err = epoll_ctl (pollfd, EPOLL_CTL_MOD, current_socket, &filter);
+            }
+            if (err == -1)
+            {
+                stop_this_nonsense = true;
+                break;
             }
             if(socket_to_close) {
                 //logfile << "close socket" << std::endl;

@@ -7,7 +7,7 @@
 
 #include <map>
 #include "client/client.h"
-#include "Pool/ObjectPool.h"
+#include "iostream"
 #define BUFSIZE 1024
 
 template <typename sock>
@@ -35,7 +35,9 @@ int ClientManager<socket>::addClient(socket sc) {
 
 template <typename socket >
 int ClientManager<socket>::removeClient(socket sc) {
-    delete clients_list.find(sc)->second;
+    auto cli = clients_list.find(sc)->second;
+    //std::cerr<< cli->getEventsNum() << std::endl;
+    delete cli;
     clients_list.erase(sc);
     return 0;
 

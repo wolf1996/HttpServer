@@ -13,6 +13,7 @@ struct ResponseHeaders {
         OK_200,
         NOTFOUND_404,
         NOTIMPLEMENTED_405,
+        FORBIDDEN_403,
     };
     bool body;
     std::string content_type;

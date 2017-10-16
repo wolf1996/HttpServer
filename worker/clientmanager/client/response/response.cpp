@@ -110,12 +110,14 @@ Response::state Response::prepareGetHandler(){
         headers.code = ResponseHeaders::NOTFOUND_404;
         return HEADERS;
     }
+    bool indexing = false;
     if (std::experimental::filesystem::is_directory(path)) {
         path.append("index.html");
+        indexing = true;
     }
     filedescr = fopen(path.c_str(),"r");
     if (filedescr == NULL) {
-        headers.code = ResponseHeaders::NOTFOUND_404;
+        headers.code = (!indexing)?ResponseHeaders::NOTFOUND_404:ResponseHeaders::FORBIDDEN_403;
     } else {
         headers.code = ResponseHeaders::OK_200;
         headers.content_type = path.extension();

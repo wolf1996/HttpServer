@@ -13,6 +13,8 @@ std::string ResponseHeaders::getStringStatus(){
             return "HTTP/1.1 404 Not Found\r\n";
         case NOTIMPLEMENTED_405:
             return "HTTP/1.1 405 Not Implemented\r\n";
+        case FORBIDDEN_403:
+            return "HTTP/1.1 403 FORBIDDEN\r\n";
     }
     return std::string("DICH \r\n");
 }

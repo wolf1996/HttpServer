@@ -35,3 +35,4 @@ RUN make fst
 ENTRYPOINT ./fst
 # sudo docker run -v /home/ksg/disk_d/Mail/HightLoad/http-test-suite/:/www/static -p 80:80  fsttest
 # sudo docker build -t fsttest .
+# ab -n 100000 -c 100 127.0.0.1:80/httptest/dir2/page.html

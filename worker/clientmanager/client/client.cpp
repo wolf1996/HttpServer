@@ -7,17 +7,16 @@
 #include <tuple>
 #include "client.h"
 
-
 Client::Client(int _socket, char _buffer[], int _buffersize, const std::experimental::filesystem::path& _working_directory):
         socket(_socket), buffer(_buffer),buffersize(_buffersize),current_state(REQUEST_PARSING),
-        working_directory(_working_directory), resp(_socket, _working_directory){}
+        working_directory(_working_directory), resp(_socket, _working_directory),eventsNum(0){}
 
 Client::state Client::handle(uint32_t event) {
+    eventsNum++;
     // Короче, тут прикол EPOLL не перепосылает event-ы поэтому если делать свитч мы потеряем
     // event на write, т.к. мы его примем, но не обработаем.
     // RIP 2 часа моего времени.
     if (REQUEST_PARSING == current_state) {
-
         if (event & EPOLLIN) {
             current_state = readHandler();
         }
@@ -25,8 +24,8 @@ Client::state Client::handle(uint32_t event) {
     if (RESPONCE_PROCESSING == current_state){
 
         if (event & EPOLLOUT) {
-                current_state = writeHandler();
-            }
+            current_state = writeHandler();
+        }
     }
     return current_state;
 }
@@ -57,8 +56,12 @@ Client::state Client::readHandler(){
     std::string data;
     int error;
     std::tie(data, error) = readData();
+    //std::cerr <<"GOT"<< data << std::endl;
     if (error != 0) {
         return ERROR;
+    }
+    if (data.size() == 0){
+        return RESPONCE_PROCESSING;
     }
     auto st = req.process(data);
     if (st == Request::FINISHED){
